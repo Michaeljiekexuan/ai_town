@@ -17,17 +17,20 @@ project/
 │ └── jods.json # 工作列表菜单
 │ └── town_news.json # 新闻菜单
 │
-├── character_editor.py # 角色mcp工具
-├── humen.py # 人物动作工具
-├── jack.py # 角色启动工具
-├── test.py # 角色测试工具
+├── character_editor # 角色mcp工具
+│
+├── humen # 人物动作工具
+│
+├── jack.py # 角色启动器
+├── test.py # 角色测试器
 ├── db_config.py # 内容存储数据库配置
 ├── db_utils.py # 存储工具
-├── emily.py # 小镇新闻构造工具
+├── emily # 小镇新闻构造工具
+│
 ├── app.py # flask启动 （对接前端页面）
 ├── serve.py # 套接字服务 （对接unity游戏）
 │
-├── main.py # 启动交互或自动仿真代理系统
+├── main.py # 启动交互或自动仿真代理系统（暂无开发）
 
 ```
 ## 🧠 角色模型（human/*.json）
