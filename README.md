@@ -98,7 +98,7 @@ project/
     "jack": "男朋友"
   },
   "memory": [
-    "[记忆总结于 2025-05-20]: 。。。。。"
+    "[记忆总结于 2025-05-20]: ....."
   ]
 }
 ```
@@ -114,10 +114,10 @@ project/
 | `update_emotion(name, delta)`               | 调整情绪等级（最小1，最大5） |
 | `update_money(name, delta)`                 | 更改角色金钱值         |
 | `manage_today_jobs(name, jobs)`             | 增删今天的工作安排       |
-还有很多。。。。
+还有很多.....
 
 ## 🍱 食物系统
-'''json
+```json
 {
   "name": "香煎三文鱼",
   "price": 80,
@@ -125,3 +125,47 @@ project/
   "emotion": 2,
   "description": "新鲜三文鱼煎至外酥里嫩，营养丰富"
 }
+```
+食物可以影响：
+
+1.physical: 体力值（1~10）
+
+2.recent_emotion: 情绪等级（1~5）
+
+3.money: 金钱减少
+
+角色会根据当前状态选择合适食物（如情绪低优先选提情绪食物）。
+
+## 👥 多角色交互
+系统支持角色间自动对话
+对话记录会自动写入数据库（MySQL），结构大致为：
+```
+CREATE TABLE conversation_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  agent1 VARCHAR(32),
+  agent2 VARCHAR(32),
+  content TEXT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+## 🎯 状态更新逻辑建议
+1.情绪值范围：1（糟糕）到 5（极好），低于 1 将被重设为 1
+
+2.体力值范围：1 到 10，最低保持在 1
+
+3.金钱无上限，可为负数（用于欠债逻辑扩展）
+
+## 📌 后续可扩展方向
+✅ 饥饿系统与能量消耗
+
+✅ 角色职业成长与技能系统
+
+✅ 食物库存与消耗逻辑
+
+✅ 性格影响决策：节俭、享乐、冲动
+
+✅ 自动日程生成（已实现）
+
+🛠️ 事件触发与情境应变（如突发事故）
+
+📱 Unity 渲染角色状态（通过 socket 连接）
