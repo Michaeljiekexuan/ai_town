@@ -16,7 +16,7 @@ class CharacterAgent:
         self.json_path = json_path
         self.name = os.path.basename(json_path).replace(".json", "")
         self.session = session
-        self.llm = llm or ChatTongyi(model="qwen-turbo-1101" ,dashscope_api_key=os.environ["DASHSCOPE_API_KEY"],streaming=True,temperature=0.7)
+        self.llm = llm or ChatTongyi(model="qwen3-30b-a3b" ,dashscope_api_key=os.environ["DASHSCOPE_API_KEY"],streaming=True,temperature=0.7)
         self.memory = MemorySaver()
         self.agent = None
         self.thread_id = self.name
@@ -88,7 +88,7 @@ class CharacterAgent:
     async def updata_daily_routine(self):
         data = self.load_json()
         daily_routine = data.get("daily_routine", [])
-        text = f"""请根据当前情绪(recent_emotion)、目标(goals)、思考(current_thought)和最近记忆，重新规划你的明日日程（daily_routine）。
+        text = f"""请根据当前体力(physical)情绪(recent_emotion)、目标(goals)、思考(current_thought)和最近记忆，重新规划你的明日日程（daily_routine）。
                         合理安排工作、采访、写作、社交、思考与休息时间。如果你最近感到疲惫，可以适当安排轻松和休息时段。
                         你可以选择删除一部分daily_routine，也可以同时选择更新或添加一部分daily_routine，最好是整点的。
                         你的日程是{daily_routine}
@@ -124,21 +124,74 @@ class CharacterAgent:
 
             print(response["messages"][-1].content)
 
+    async def Thoughtjod_change(self, time_str: str):
+        data = self.load_json()
+        jods = data.get("today_jods")
+        for i in jods:
+            if(i.get("time")[0:2] == time_str[0:2] and data.get("location") == i.get("location")):
+                messagee = f"""你已经完成你的{i}工作了，请调用工具修改你的 体力"physical"  情绪"recent_emotion"  金钱"money" """
+                response = await self.agent.ainvoke(
+                    {"messages": [("user", messagee)]},
+                    config={"configurable": {"thread_id": self.thread_id}},
+                )
+                summary = response["messages"][-1].content.strip()
+                print(f"[{self.name}] 修改介绍：{summary}")
+
     def generate_prompt_from_time(self, data: dict, time_str: str) -> str:
         routine = data.get("daily_routine", {})
         time_activity = self.get_current_activity(routine, time_str)
         current_activity = data.get("current_activity", "无")
         location = data.get("location", "未知")
+        physical = data.get("physical")
+        recent_emotion = data.get("recent_emotion")
+        money = data.get("money")
+        current_thought = data.get("current_thought")
+        daily_routine = data.get("daily_routine")
+        name = data.get("name")
         return f"""
-        现在是 {time_str}。请你根据自己的作息时间表（daily_routine）、时间序列事件为（{time_activity}）、你正在做的事情（{current_activity}）和你的位置（{location}）、等经历和内心状态，自主判断是否需要：
-        - 修改你当前所在的位置（location）
-        - 记录新的记忆（memory）
-        - 更新你今天的日程（daily_routine）
-        - 更新你当前的活动情况（current_activity）
-        - 更新你现在的心情（recent_emotion）
-        - 更新你最近在思考什么（current_thought）
-        你可以主动使用你的工具完成这些更新。
-        记住：你生活在一个共享小镇中，其他人物可能和你有交集，请表现出真实、合理的行动行为。
+        你所在的世界是一个名叫“星语小镇”的虚拟小镇。小镇地理不大,有小镇餐厅、电影院、公园、图书馆、咖啡馆、超市、研究所、厨房、洗浴室、每个虚拟人物都有自己的房间，比如你的房间是{name}的房间。
+        现在时间：{time_str}  
+        当前状态：
+        - 体力值：{physical}（0–10）  
+        - 情绪值：{recent_emotion}（1–5）  
+        - 金钱：{money}  
+        - 位置：{location}  
+        - 当前活动：{current_activity}  
+        - 当前思考：{current_thought}  
+        - 今日事件序列：{time_activity}  
+        - 日常作息：{daily_routine}  
+        
+        请根据以上信息，自主判断并执行以下操作（如有必要）：
+        
+        1. **位置移动**  
+           - 如果下一项日程或当前活动不在当前位置，请调用工具更新 `location`。
+        
+        2. **活动更新**  
+           - 根据当前时间和日常作息，或突发事件，更新 `current_activity`。
+        
+        3. **体力管理**  
+           - 若 `physical` ≤ 3：  
+             - 若附近有可用餐厅或食材频道，请“吃饭”恢复体力 +4，并消耗相应金钱；  
+             - 否则请选择“休息”在当前位置恢复体力 +2。  
+           - 将恢复行为添加到 `daily_routine` 中或作为单独事件记录。
+        
+        4. **情绪调节**  
+           - 若 `recent_emotion` ≤ 3：  
+             - 可选择短暂“散步”“听音乐”“喝咖啡”等方式恢复情绪 +2；  
+           - 将恢复行为添加到 `daily_routine` 中或作为单独事件记录。。
+        
+        5. **金钱与工作**  
+           - 若 `money` < 0：  
+             - 安排或提前执行一项日常或附加工作，更新 `daily_routine` 并调整 `today_jobs`。  
+           - 如完成工作，请在 `money` 上加相应收益，并记录在 `memory`。
+        
+        6. **思考与记忆**  
+           - 每完成一次关键行为（如吃饭、工作、情绪调节等），更新 `current_thought`，并将当天重要事件写入 `memory`。  
+           - 如果 `memory` 中条目过多，调用记忆总结工具进行压缩。
+        
+        请始终保持角色的语言风格中。  
+        daily_routine日程的更新必须严格按照每个小时进行整点更新，不能存在比如18:20去吃饭，只能按照18:00整点更改
+        location必须按照小镇内的设施一字不差
         """
 
     async def tick(self,talk: str):
@@ -162,6 +215,12 @@ class CharacterAgent:
         )
         print(response["messages"][-1].content)
 
+    async def use_for_onechat(self,messages:str):
+        response = await self.agent.ainvoke(
+            {"messages": [("user", messages)]},
+            config={"configurable": {"thread_id": self.thread_id}}
+        )
+        print(response["messages"][-1].content)
 
     async def summarize_memory(self):
         data = self.load_json()
@@ -207,14 +266,23 @@ class CharacterAgent:
         routine = data.get("daily_routine", {})
         memory_str = "\n".join(f"- {m}" for m in memory)
         relation_str = "\n".join(f"{k}：{v}" for k, v in relationship.items())
-
+        phy = data.get("physical")
+        jods = data.get("today_jods")
         prompt = f"""
         你是小镇虚拟人物 {self.name}。  
 
         当前所在地点：{location}  
+        当前体力值为：{phy}  
         当前计划的活动是：{activity}  
+        今天的工作为：{jods}
         最近的想法是：{current_thought}
         最近情绪：{recent_emotion}  
+        心情由好到不好分为5个阶段
+            -极好- 	情绪高涨、积极主动，适合进行高强度社交或创造性任务
+            -较好-	状态良好，能有效完成任务
+            -一般-	平稳状态，可正常工作，但略缺乏动力
+            -较差-	情绪低落，工作效率下降，需适当放松
+            -极差-	情绪极差，可能需要休息、倾诉或调整
         你与他人的关系如下：  
         {relation_str}
 
@@ -225,6 +293,7 @@ class CharacterAgent:
         {memory_str}
 
         请你思考：当前这个时间点，你是否需要主动找朋友聊天？
+        注意  打工的时候是不可以进行聊天的
         请结合你当前的日程安排，尤其是在日程中如果你正在与某人一起活动（例如：一起散步、一起做项目），你很可能应该与该人物发起对话。
 
         如果你要发起对话，请返回：

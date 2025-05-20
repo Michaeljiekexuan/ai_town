@@ -1,0 +1,59 @@
+{
+  "jobs": [
+    {
+      "job": "搬砖",
+      "lose": {
+        "physical": -3,
+        "emotion": -1
+      },
+      "location": "小镇公园",
+      "give": {
+        "money": 200
+      }
+    },
+    {
+      "job": "咖啡店打工",
+      "lose": {
+        "physical": -2,
+        "emotion": -1
+      },
+      "location": "咖啡店",
+      "give": {
+        "money": 150
+      }
+    },
+    {
+      "job": "图书馆管理员",
+      "lose": {
+        "physical": -1,
+        "emotion": 1
+      },
+      "location": "图书馆",
+      "give": {
+        "money": 60
+      }
+    },
+    {
+      "job": "公园导游",
+      "lose": {
+        "physical": -2,
+        "emotion": 1
+      },
+      "location": "小镇公园",
+      "give": {
+        "money": 120
+      }
+    },
+    {
+      "job": "街头艺人表演",
+      "lose": {
+        "physical": -2,
+        "emotion": 2
+      },
+      "location": "小镇公园",
+      "give": {
+        "money": 80
+      }
+    }
+  ]
+}

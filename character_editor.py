@@ -236,15 +236,18 @@ def update_relationship(name: str, person: str, relation: str) -> str:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
     return f"已将 {name} 与 {person} 的关系更新为：{relation}"
+
 @mcp.tool()
-def update_recent_emotion(name: str, recent_emotion: str) -> str:
+def change_physical(name: str, delta: int) -> str:
     """
-    更新角色当前的心情。
+    修改角色的体力值（physical），最低不低于 1。
+
     参数：
         name: 角色名称（对应 JSON 文件名）
-        recent_emotion: 当前心情描述
+        delta: 体力增减值，可为正或负
+
     返回：
-        操作结果的字符串描述
+        修改后的体力值描述
     """
     path = CHARACTER_DIR / f"{name}.json"
     if not path.exists():
@@ -253,12 +256,75 @@ def update_recent_emotion(name: str, recent_emotion: str) -> str:
     with open(path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    data["recent_emotion"] = recent_emotion
+    old_value = data.get("physical", 5)
+    new_value = max(1, old_value + delta)
+    data["physical"] = new_value
 
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-    return f"已将 {name} 当前的心情更新为：{recent_emotion}"
+    return f"{name} 的体力已从 {old_value} 改为 {new_value}"
+
+@mcp.tool()
+def update_recent_emotion(name: str, delta: int) -> str:
+    """
+    修改角色的情绪值 recent_emotion，范围限定在 1 到 5 之间。
+
+    参数：
+        name: 角色名称（对应 JSON 文件名）
+        delta: 情绪变化值（正数为提升，负数为下降）
+
+    返回：
+        操作结果描述字符串
+    """
+    path = CHARACTER_DIR / f"{name}.json"
+    if not path.exists():
+        return f"角色 {name} 的 JSON 文件不存在。"
+
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    if "recent_emotion" not in data:
+        data["recent_emotion"] = 3  # 默认中性情绪
+
+    old_value = data["recent_emotion"]
+    new_value = max(1, min(5, old_value + delta))
+    data["recent_emotion"] = new_value
+
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return f"角色 {name} 的情绪值已从 {old_value} 变为 {new_value}（变化量：{delta}）"
+
+
+@mcp.tool()
+def change_money(name: str, delta: int) -> str:
+    """
+    修改角色的金钱（money），可以为负。
+
+    参数：
+        name: 角色名称（对应 JSON 文件名）
+        delta: 金钱增减值
+
+    返回：
+        修改后的金钱值描述
+    """
+    path = CHARACTER_DIR / f"{name}.json"
+    if not path.exists():
+        return f"角色 {name} 的 JSON 文件不存在。"
+
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    old_value = data.get("money", 0)
+    new_value = old_value + delta
+    data["money"] = new_value
+
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return f"{name} 的金钱已从 {old_value} 改为 {new_value}"
+
 
 @mcp.tool()
 def update_current_thought(name: str, current_thought: str) -> str:
@@ -311,6 +377,43 @@ def update_location(name: str, location: str) -> str:
 
     return f"已将 {name} 的当前位置更新为：{location}"
 
+@mcp.tool()
+def update_today_jods(name: str, new_job: dict) -> str:
+    """
+    为角色添加或更新一项今日工作（today_jods），支持时间字段。
+
+    参数：
+        name: 角色名称（对应 JSON 文件名）
+        new_job: 要添加或更新的工作项（包含 job, time, location, lose, give 字段）
+
+    返回：
+        操作结果描述字符串
+    """
+    path = CHARACTER_DIR / f"{name}.json"
+    if not path.exists():
+        return f"角色 {name} 的 JSON 文件不存在。"
+
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    if "today_jods" not in data:
+        data["today_jods"] = []
+
+    updated = False
+    for i, job in enumerate(data["today_jods"]):
+        if job.get("job") == new_job.get("job"):
+            data["today_jods"][i] = new_job
+            updated = True
+            break
+
+    if not updated:
+        data["today_jods"].append(new_job)
+
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    action = "更新" if updated else "添加"
+    return f"{action}了今日工作：{new_job.get('job')}，时间为：{new_job.get('time')}"
 
 # 启动 MCP 服务器
 if __name__ == "__main__":

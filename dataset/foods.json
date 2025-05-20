@@ -1,0 +1,60 @@
+{
+  "foods": [
+    {
+      "name": "香煎三文鱼",
+      "price": 80,
+      "physical": 5,
+      "emotion": 2,
+      "description": "新鲜三文鱼煎至外酥里嫩，营养丰富"
+    },
+    {
+      "name": "番茄炒蛋",
+      "price": 60,
+      "physical": 4,
+      "emotion": 1,
+      "description": "家常美味，温暖人心"
+    },
+    {
+      "name": "泡面",
+      "price": 10,
+      "physical": 1,
+      "emotion": -1,
+      "description": "廉价快餐，凑合吃饱"
+    },
+    {
+      "name": "牛排大餐",
+      "price": 120,
+      "physical": 8,
+      "emotion": 3,
+      "description": "豪华牛排搭配红酒酱汁，提升幸福感"
+    },
+    {
+      "name": "烧焦的煎饼",
+      "price": 5,
+      "physical": 1,
+      "emotion": -2,
+      "description": "煎得太久，味道苦涩，让人不快"
+    },
+    {
+      "name": "鲜榨果汁",
+      "price": 30,
+      "physical": 1,
+      "emotion": 2,
+      "description": "清新果香，提神醒脑"
+    },
+    {
+      "name": "辣味咖喱饭",
+      "price": 50,
+      "physical": 3,
+      "emotion": 0,
+      "description": "辣得过瘾，体力恢复快，但有人可能不喜欢"
+    },
+    {
+      "name": "冰淇淋圣代",
+      "price": 40,
+      "physical": 0,
+      "emotion": 3,
+      "description": "甜蜜冰凉，快乐加倍"
+    }
+  ]
+}
